@@ -1,5 +1,16 @@
-import React from 'react';
-import { Play, Pause, FastForward, RotateCcw, AlertTriangle, Activity, Radio, Menu } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Play,
+  Pause,
+  FastForward,
+  RotateCcw,
+  AlertTriangle,
+  Activity,
+  Radio,
+  Menu,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { CheckIcon } from './CheckIcon';
 import { isBackendOnline } from '../services/api';
 
@@ -26,6 +37,26 @@ export const Topbar: React.FC<TopbarProps> = ({
   currentTimestamp,
   isAnomaly,
 }) => {
+  const [isActionsOpen, setIsActionsOpen] = useState<boolean>(true);
+  const lastScrollY = useRef<number>(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      // Auto-hide controls when user scrolls down past 45px
+      if (currentScrollY > 45 && currentScrollY > lastScrollY.current + 5) {
+        setIsActionsOpen(false);
+      } else if (currentScrollY < 15) {
+        // Automatically re-expand when returned to top
+        setIsActionsOpen(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <header className="topbar">
       <div className="topbar-header-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -60,7 +91,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
           <span style={{ color: 'var(--grey)', fontWeight: 600 }}>TELEMETRY TIME:</span>
           <span className="font-mono" style={{ fontWeight: 700 }}>
@@ -79,7 +110,19 @@ export const Topbar: React.FC<TopbarProps> = ({
           </span>
         )}
 
-        <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        {/* CHEVRON TOGGLE BUTTON */}
+        <button
+          className={`chevron-toggle-btn ${isActionsOpen ? 'active' : ''}`}
+          onClick={() => setIsActionsOpen((prev) => !prev)}
+          title={isActionsOpen ? 'Hide action controls' : 'Show action controls'}
+          aria-label={isActionsOpen ? 'Hide action controls' : 'Show action controls'}
+        >
+          <span>CONTROLS</span>
+          {isActionsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+      </div>
+
+      <div className={`topbar-actions topbar-actions-collapsible ${isActionsOpen ? 'open' : 'closed'}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             className={`btn ${isPlaying ? 'btn-primary' : ''}`}
             onClick={onTogglePlay}
@@ -132,7 +175,6 @@ export const Topbar: React.FC<TopbarProps> = ({
             <RotateCcw size={14} />
           </button>
         </div>
-      </div>
     </header>
   );
 };

@@ -381,3 +381,57 @@ html, body {
   }
 }
 
+/* Collapsible Actions Panel on Scroll & Chevron Toggle */
+.chevron-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  box-shadow: var(--shadow-tactile-sm);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  transition: transform 0.1s, box-shadow 0.1s, background-color 0.15s;
+}
+.chevron-toggle-btn:hover {
+  background: #FFFFFF;
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-tactile);
+}
+.chevron-toggle-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #1C1912;
+}
+.chevron-toggle-btn.active {
+  background: var(--ink);
+  color: #FFFFFF;
+}
+
+.topbar-actions-collapsible {
+  transition: max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, transform 0.22s ease;
+  overflow: hidden;
+}
+.topbar-actions-collapsible.open {
+  max-height: 240px;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.topbar-actions-collapsible.closed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  transform: translateY(-6px);
+  pointer-events: none;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
