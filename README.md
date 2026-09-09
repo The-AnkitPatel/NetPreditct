@@ -1,269 +1,182 @@
-# NETPREDICT ⚡
-### Autonomous Network Failure & Congestion Prediction System
+# NetPredict
 
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![LightGBM](https://img.shields.io/badge/LightGBM-4.5.0-brightgreen)](https://lightgbm.readthedocs.io/)
-[![TreeSHAP](https://img.shields.io/badge/Explainability-TreeSHAP-orange)](https://github.com/shap/shap)
-[![React 19](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)](https://react.dev)
+> An early warning system for network congestion and performance degradation.
+
+[![Live Demo](https://img.shields.io/badge/Live_Cockpit-Visit_App-24292e?logo=vercel&logoColor=white)](https://netpredict-cockpit.vercel.app)
+[![Documentation](https://img.shields.io/badge/Docs_Portal-Read_Docs-4A6B37?logo=bookstack&logoColor=white)](https://netpredict-docs.vercel.app/docs)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Vercel UI](https://img.shields.io/badge/Vercel_Cockpit-Live_Online-000000?logo=vercel&logoColor=white)](https://netpredict-cockpit.vercel.app)
-[![Vercel Docs](https://img.shields.io/badge/Fumadocs-Portal_Live-black?logo=vercel&logoColor=white)](https://netpredict-docs.vercel.app/docs)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![Tests](https://img.shields.io/badge/Pytest-100%25_Passing-success)](#verification--automated-tests)
-
-> **🚀 LIVE DEPLOYMENTS (100% Free Serverless Edge — 0ms Latency):**
-> - **Live Interactive Cockpit**: [**https://netpredict-cockpit.vercel.app**](https://netpredict-cockpit.vercel.app)
-> - **Architectural Documentation Portal (Fumadocs)**: [**https://netpredict-docs.vercel.app/docs**](https://netpredict-docs.vercel.app/docs)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 1. Executive Summary
+## Overview
 
-**NetPredict** is a state-of-the-art predictive network intelligence and telemetry platform designed to anticipate network congestion, bufferbloat, QoS degradation, and node/interface failures before they cause packet drop cliffs.
+Most network monitoring tools (like Datadog, Zabbix, or PRTG) are **reactive**. They only alert engineers after packets have already dropped, a router buffer has overflowed, and users are experiencing disconnects.
 
-Operating on the principle:
-> *"Understand what is happening in the network now, predict what is likely to happen next, understand why the system made that prediction, and evaluate counterfactual interventions before execution."*
+**NetPredict is a predictive early warning system.** Instead of waiting for a failure to happen, it analyzes real-time network trends—such as queue buildup and rising latency slopes—to predict congestion **5, 15, and 30 minutes in advance**.
 
-NetPredict abandons naive static-threshold monitoring and toy black-box classification in favor of **physical queuing kinetics, strict zero-leakage temporal cross-validation, isotonic probability calibration, finite-sample conformal prediction intervals, and sub-2ms TreeSHAP attribution**.
-
-![NetPredict NOC Cockpit](docs/screenshots/dashboard_overview.png)
+![NetPredict Live Cockpit](docs/screenshots/dashboard_overview.png)
 
 ---
 
-## 2. The Engineering Marvel: What Sets NetPredict Apart
+## Why This Matters
 
-| Engineering Challenge | Conventional Naive Approaches | NetPredict Solution |
-| :--- | :--- | :--- |
-| **Congestion Dynamics** | Threshold alerts on packet loss (reactive post-mortem). | **Bufferbloat Kinetics**: Monitors delay gradient $\frac{\Delta RTT}{\Delta t}$ and queue occupancy phases before drops occur. |
-| **Temporal Data Leakage** | Random $K$-Fold cross-validation (leaking future time steps into training splits). | **Walk-Forward CV with Embargo Gap**: Strict chronological windowing with an embargo gap $\Delta t_{embargo} \ge \max(H)$ to eliminate autoregressive contamination. |
-| **ML Probability Quality** | Raw sigmoid/tree leaf outputs interpreted as true risk (severely overconfident). | **Isotonic Regression Calibration**: Guaranteed monotonic calibration curve achieving a **Brier Score of 0.0157**. |
-| **Uncertainty Bounds** | Single-point regression predictions with zero error bounds. | **Split Conformal Prediction**: Distribution-free coverage guarantee ensuring $P(Y_{t+h} \in \hat{C}_{0.90}(X_t)) \ge 90\%$. |
-| **Explainability** | Black-box opacity or slow KernelSHAP sampling ($>3$ seconds). | **Exact TreeSHAP**: Microsecond-scale exact tree path attributions decomposed into actionable operator insights. |
-| **Operator Actionability** | Passive charts requiring manual intuition and trial-and-error. | **Counterfactual What-If Sandbox**: In-memory simulation of rerouting (10-50%), ingress rate limits, and QoS buffers with instant risk recalculation. |
-| **Data Authenticity** | Hardcoded static arrays or synthetic mocks. | **Dual Telemetry Engine**: Live physical OS NIC hardware collector (`psutil` + socket latency probes) alongside high-fidelity microburst benchmarks. |
+Think of a network link like a highway:
+- **Traditional Monitoring:** Alerts you after a 10-car pileup has already blocked the road.
+- **NetPredict:** Notices that cars are beginning to brake and bunch together, predicting a traffic jam 15 minutes before anyone comes to a complete standstill.
+
+By catching queue pressure early, network engineers can reroute traffic, adjust QoS settings, or apply rate limits *before* packet loss impacts users.
 
 ---
 
-## 3. Mathematical Foundations
+## Key Features
 
-### A. Bufferbloat & Delay Gradient Kinetics
-Packet loss is a lagging indicator. In network queues, bufferbloat exhibits a phase change where RTT increases linearly while throughput remains flat:
-$$\frac{\Delta RTT}{\Delta t} = \frac{RTT_t - RTT_{t-w}}{w}$$
-NetPredict detects impending congestion when queue occupancy exceeds the inflection threshold:
-$$Q_{stress}(t) = \alpha \cdot \left(\frac{Q_t}{Q_{max}}\right) + \beta \cdot \left(\frac{\Delta RTT}{\Delta t}\right) + \gamma \cdot \text{Retrans}_{TCP}(t)$$
+- **Multi-Horizon Predictions (5m, 15m, 30m):**
+  Forecasts risk across three critical operational windows so engineers have enough time to take action.
 
-### B. Isotonic Probability Calibration
-Raw tree ensemble outputs $f(x)$ are uncalibrated. NetPredict fits an isotonic step function $m: \mathbb{R} \to [0, 1]$ minimizing squared loss:
-$$\min_{m} \sum_{i=1}^n (y_i - m(f(x_i)))^2 \quad \text{subject to } m(a) \le m(b) \text{ for } a < b$$
-Achieving a Brier score of **0.0157** against the uncalibrated baseline (0.0892).
+- **Root-Cause Explainability:**
+  Doesn't just output a risk percentage. It shows exactly *why* the risk is elevated (e.g., whether it is driven by queue buildup, TCP retransmissions, or bandwidth spikes).
 
-### C. Split Conformal Prediction Intervals
-For forecasted continuous metrics (e.g., predicted RTT $\hat{y}_{t+h}$), NetPredict constructs distribution-free prediction intervals with coverage rate $1 - \alpha = 0.90$:
-$$\hat{C}_{1-\alpha}(X) = [\hat{y}_{t+h} - q_{1-\alpha}, \hat{y}_{t+h} + q_{1-\alpha}]$$
-where $q_{1-\alpha}$ is the $\lceil (n+1)(1-\alpha) \rceil / n$ quantile of calibration non-conformity scores $|y_i - \hat{y}_i|$.
+- **"What-If" Mitigation Simulator:**
+  Lets operators test changes before touching production equipment. For example, you can simulate rerouting 20% of traffic or expanding buffer size to see how much the predicted risk drops in real time.
 
-### D. Exact TreeSHAP Feature Attributions
-Predictions are decomposed into additive feature attributions:
-$$f(x) = \phi_0 + \sum_{j=1}^M \phi_j(x)$$
-where each $\phi_j$ satisfies local accuracy, missingness, and consistency, translated in real-time into operator root-cause narratives (e.g. *"+42% risk driven by 5-min queue occupancy gradient"*).
+- **Dual Ingestion Engine:**
+  - **Live Hardware Polling:** The Python backend includes a built-in collector that can read real network interface counters and measure live socket latency directly from your computer's OS.
+  - **Zero-Cost Browser Engine:** When hosted on the web without a dedicated server, the dashboard runs a built-in simulation engine with realistic daily traffic cycles and microbursts so anyone can test it for free 24/7.
+
+- **Clean, Responsive Cockpit:**
+  Built with a high-contrast tactile interface designed for quick readability during incidents. Works across desktop, tablet, and mobile devices.
 
 ---
 
-## 4. System Architecture
+## How It Works
 
 ```
-                          ┌────────────────────────────────────────────────────────┐
-                          │         TELEMETRY INGESTION DUAL ENGINE               │
-                          │  • Mode A: Live Physical Host NIC (psutil + TCP RTT)   │
-                          │  • Mode B: High-Fidelity Microburst Benchmark Replay   │
-                          └───────────────────────────┬────────────────────────────┘
-                                                      │
-                                                      ▼
-                          ┌────────────────────────────────────────────────────────┐
-                          │       SLIDING-WINDOW CIRCULAR BUFFER (maxlen=300)      │
-                          │      O(1) Append & O(W) Temporal Slice Extraction      │
-                          └───────────────────────────┬────────────────────────────┘
-                                                      │
-                                                      ▼
-                          ┌────────────────────────────────────────────────────────┐
-                          │            TEMPORAL FEATURE EXTRACTOR                  │
-                          │  • Rolling Means, Stds, EWMA (5m, 15m)                 │
-                          │  • Delay Gradients (ΔRTT/Δt), Drop Ratios, TCP Slopes  │
-                          └───────┬────────────────────────────────────────┬───────┘
-                                  │                                        │
-         ┌────────────────────────┴──────────────┐                         │
-         ▼                                       ▼                         ▼
-┌──────────────────┐                   ┌──────────────────┐      ┌──────────────────┐
-│  STAGE 1:        │                   │  STAGE 2:        │      │  STAGE 3:        │
-│  Anomaly NOW     │                   │  Predict NEXT    │      │  TreeSHAP        │
-│  (Isolation      │                   │  (Multi-Horizon  │      │  Attribution     │
-│  Forest)         │                   │  LightGBM)       │      │  Engine          │
-└────────┬─────────┘                   └────────┬─────────┘      └────────┬─────────┘
-         │                                      │                         │
-         │  ┌───────────────────────────────────┴──────────────────────┐  │
-         │  │ Calibration & Uncertainty:                               │  │
-         │  │ • Isotonic Regression (Brier: 0.0157)                    │  │
-         │  │ • Split Conformal Prediction (90% Interval Bounds)       │  │
-         │  └───────────────────────────────────┬──────────────────────┘  │
-         │                                      │                         │
-         └───────────────────────┬──────────────┴─────────────────────────┘
-                                 │
-                                 ▼
-         ┌────────────────────────────────────────────────────────┐
-         │             FASTAPI REST & SSE API GATEWAY             │
-         │   /telemetry/*  •  /predict/*  •  /explain/*           │
-         │   /simulate     •  /health/*   •  /telemetry/live-poll │
-         └───────────────────────┬────────────────────────────────┘
-                                 │
-                                 ▼
-         ┌────────────────────────────────────────────────────────┐
-         │         REACT 19 + VITE TACTILE NOC COCKPIT            │
-         │  • 7 Interactive Workspaces  • Neo-Brutalist Aesthetic │
-         │  • AMOLED Black Sidebar      • Live Physical Poller    │
-         └────────────────────────────────────────────────────────┘
+1. Telemetry Ingestion
+   Reads network signals: Bandwidth, Queue Occupancy, Round-Trip Time (RTT), Jitter, and Loss.
+          │
+          ▼
+2. Trend & Rate-of-Change Analysis
+   Calculates how fast queues and latency are rising over rolling 5-minute and 15-minute windows.
+          │
+          ▼
+3. Risk Prediction & Explainability
+   • Predicts failure probabilities across 5m, 15m, and 30m horizons.
+   • Explains key drivers behind the score using feature attributions.
+   • Provides a What-If sandbox to test mitigations before taking action.
 ```
 
 ---
 
-## 5. Live Telemetry Workspaces (The 7 Pillars)
+## Interactive Dashboard Sections
 
-1. **Workspace 01: Live Telemetry & Data Plane Signals**
-   - Active link utilization, throughput, line-rate buffer depth, active probe RTT, jitter, TCP retransmission slopes, and hardware CRC discards.
-2. **Workspace 02: Multi-Horizon Predictive Risk Engine**
-   - Simultaneous forecasting across $T+5m$ (acute microburst), $T+15m$ (primary traffic steering horizon), and $T+30m$ (strategic link cascade) with 90% conformal intervals.
-3. **Workspace 03: Decoupled Anomaly vs. Prediction Matrix**
-   - 4-quadrant operational matrix resolving:
-     - Normal Telemetry $\to$ High Future Risk (*Impending buffer cliff, proactive reroute required*).
-     - Anomalous Telemetry $\to$ Low Future Risk (*Transient benign spike, suppress false alerts*).
-4. **Workspace 04: Root-Cause Feature Attribution (TreeSHAP)**
-   - Microsecond additive Shapley values translating mathematical weights into human-readable triage actions.
-5. **Workspace 05: What-If Counterfactual Mitigation Lab**
-   - Live sandbox to adjust traffic diversion percentage, ingress rate limits, and QoS queue headroom, projecting residual failure probability.
-6. **Workspace 06: Model Health & Drift Audit**
-   - Drift scores, Brier score calibration stability, feature drift monitors, and training pedigree tracking.
-7. **Workspace 07: Incident Post-Mortem & Audit Log**
-   - Comprehensive ledger of telemetry timestamps, prediction horizon triggers, risk levels, and mitigation actions taken.
+The dashboard is divided into 7 functional workspaces:
+
+1. **Live Telemetry:** Real-time graphs of bandwidth, queue depth, round-trip time, and packet loss.
+2. **Predictive Horizons:** Risk scores and latency estimates for the next 5, 15, and 30 minutes.
+3. **Anomaly vs. Prediction:** Distinguishes between brief benign traffic spikes and real impending failures to reduce false alarms.
+4. **Root Cause Analysis:** Breaks down which telemetry metrics contributed most to the current risk score.
+5. **What-If Scenario Lab:** Interactive sliders to test traffic diversion and queue limits with instant feedback.
+6. **Model Health & Stability:** Displays model calibration and prediction accuracy metrics.
+7. **Incident Log:** Searchable history of detected congestion events and triage timestamps.
 
 ---
 
-## 6. Where & How to Deploy NetPredict
+## Quick Start
 
-### Option A: Cloud SaaS / Portfolio Showcase (Recommended for Demonstrations)
-- **Frontend & Docs Portal**: Deploy to **Vercel** or **Cloudflare Pages** with instant global edge CDN caching.
-  ```bash
-  # Deploy Docs Portal
-  cd docs-portal && npx vercel --prod
-  # Deploy React Cockpit
-  cd frontend && npx vercel --prod
-  ```
-- **Backend ML Engine**: Deploy to **Render**, **Railway**, or **Fly.io** using the provided `backend/Dockerfile`.
-  - Continuous deployment connected directly to this repository.
-  - Set environment variable: `PORT=8000`.
+You can explore NetPredict in three ways:
 
-### Option B: Production Edge Gateway / Enterprise On-Prem (Docker Compose)
-Run the complete containerized stack on any Linux host or edge router with a single command:
+### 1. Try the Live Web App (No setup required)
+- **Live Cockpit:** [https://netpredict-cockpit.vercel.app](https://netpredict-cockpit.vercel.app)
+- **Documentation Portal:** [https://netpredict-docs.vercel.app/docs](https://netpredict-docs.vercel.app/docs)
+
+---
+
+### 2. Run with Docker Compose (Recommended for local testing)
+Clone the repository and start both backend and frontend with one command:
+
 ```bash
 git clone https://github.com/The-AnkitPatel/NetPreditct.git
 cd NetPreditct
-docker compose up --build -d
+docker compose up --build
 ```
-- **Frontend Cockpit**: `http://localhost:5173`
-- **Backend API & Swagger Docs**: `http://localhost:8000/docs`
-- **Health Check**: `http://localhost:8000/api/v1/health`
-
-### Option C: Live Physical Hardware Telemetry Daemon
-To monitor the host machine's physical network adapter (or a Linux border router) in real time:
-```bash
-# Start backend
-uvicorn backend.app.main:app --port 8000
-
-# Start live host daemon (collects physical NIC stats every 2s)
-python backend/scripts/run_live_agent.py --interval 2.0 --endpoint http://localhost:8000/api/v1/telemetry/ingest
-```
+- Open the Dashboard: `http://localhost:5173`
+- Open the API Docs: `http://localhost:8000/docs`
 
 ---
 
-## 7. Local Development & Verification
+### 3. Run Locally (Step-by-Step)
 
-### Prerequisites
+#### Prerequisites
 - Python 3.12+
 - Node.js 20+
 
-### Step 1: Backend Setup
+#### Step A: Backend
 ```bash
-git clone https://github.com/The-AnkitPatel/NetPreditct.git
+# Navigate to project root
 cd NetPreditct
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv .venv
+
 # On Windows:
 .venv\Scripts\activate
-# On Linux/macOS:
+# On macOS/Linux:
 source .venv/bin/activate
 
 # Install dependencies
 pip install -r backend/requirements.txt psutil
 
-# Run automated tests
+# Run unit tests
 pytest backend/tests -v
+
+# Start backend server
+uvicorn backend.app.main:app --port 8000 --reload
 ```
 
-### Step 2: Frontend Cockpit Setup
+#### Step B: Frontend
 ```bash
+# In a separate terminal
 cd frontend
 npm install
-npm run build
 npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
-### Step 3: Fumadocs Documentation Platform
-```bash
-cd docs-portal
-npm install
-npm run build
-npm run dev
-```
-Open `http://localhost:3000` to view the comprehensive Fumadocs documentation site.
-
 ---
 
-## 8. Repository Structure
+## Project Structure
 
 ```
 NetPredict/
 ├── backend/
 │   ├── app/
-│   │   ├── api/                   # FastAPI endpoint routers (predict, telemetry, shap, simulate)
-│   │   ├── collectors/            # Real physical NIC telemetry poller (psutil + socket RTT)
-│   │   ├── core/                  # Configuration, logging, settings
-│   │   ├── domain/                # Pydantic schemas (telemetry, prediction, explainability)
-│   │   ├── ml/                    # LightGBM, Isotonic Calibration, Conformal, TreeSHAP
-│   │   └── services/              # Sliding window buffer, feature extractor, stream manager
-│   ├── scripts/                   # Live network agent daemon & validation scripts
-│   ├── tests/                     # Comprehensive pytest test suite (100% pass)
-│   ├── Dockerfile                 # Production backend container spec
-│   └── requirements.txt           # Python 3.12 dependencies
+│   │   ├── api/             # FastAPI REST endpoints (telemetry, predictions, what-if)
+│   │   ├── collectors/      # Host NIC hardware collector (psutil + socket latency)
+│   │   ├── ml/              # Prediction models, anomaly detection, explainability
+│   │   └── services/        # Sliding-window buffer and feature extraction
+│   ├── tests/               # Pytest automated test suite
+│   ├── Dockerfile           # Backend container definition
+│   └── requirements.txt     # Python dependencies
 ├── frontend/
 │   ├── src/
-│   │   ├── components/            # 7 Tactical Telemetry Workspaces, AMOLED Sidebar, Topbar
-│   │   ├── services/              # Typed REST API client
-│   │   ├── types/                 # TypeScript telemetry definitions
-│   │   └── index.css              # Neo-brutalist tactile design tokens
-│   ├── Dockerfile                 # Multi-stage production Nginx container
+│   │   ├── components/      # React UI panels and controls
+│   │   ├── services/        # API client and client-side fallback engine
+│   │   └── types/           # TypeScript data interfaces
+│   ├── Dockerfile           # Frontend container definition
 │   └── package.json
-├── docs-portal/                   # Complete Fumadocs Next.js documentation portal
-├── obsidian_vault/                # Interconnected Obsidian Knowledge Vault (MOC, formulas, guides)
-├── docs/screenshots/              # High-resolution production cockpit captures
-├── docker-compose.yml             # Single-command local/edge orchestration
-└── README.md                      # Publication-grade technical documentation
+├── docs-portal/             # Complete Next.js documentation portal
+├── docs/screenshots/        # Dashboard screenshots
+├── docker-compose.yml       # Docker Compose setup
+└── README.md
 ```
 
 ---
 
-## 9. Author & License
+## Author & License
 
-- **Engineered by**: [Ankit Patel](https://github.com/The-AnkitPatel) (3rd-Year B.Tech CSE/IT)
-- **License**: MIT Open Source License. Free for academic, enterprise, and research evaluation.
+- **Author:** [Ankit Patel](https://github.com/The-AnkitPatel)
+- **License:** [MIT License](LICENSE) — free to use, modify, and build upon for educational, academic, and practical use.
