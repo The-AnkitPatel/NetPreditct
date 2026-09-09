@@ -100,11 +100,11 @@ export const Topbar: React.FC<TopbarProps> = ({
         </div>
 
         {isAnomaly ? (
-          <span className="badge-critical" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <span className="badge-critical topbar-status-badge">
             <AlertTriangle size={13} /> ANOMALY DETECTED NOW
           </span>
         ) : (
-          <span className="badge-low" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <span className="badge-low topbar-status-badge">
             <CheckIcon size={12} style={{ color: 'var(--lentil)' }} />
             CURRENT STATE NOMINAL
           </span>
