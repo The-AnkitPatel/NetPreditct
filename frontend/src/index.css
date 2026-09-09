@@ -144,12 +144,12 @@ html, body {
 
 .panel {
   background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-tactile-sm);
-  padding: 22px clamp(16px, 2.5vw, 28px); margin-bottom: 28px;
+  padding: 28px clamp(18px, 2.5vw, 32px); margin-bottom: 48px;
   content-visibility: auto; contain-intrinsic-size: auto 500px;
 }
 .panel-head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-bottom: 22px; border-bottom: 1px solid var(--line); padding-bottom: 16px;
+  margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 18px;
 }
 .panel-title {
   font-family: var(--font-display); font-size: 18px; letter-spacing: 0.3px;
@@ -199,3 +199,185 @@ html, body {
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
 .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+/* TreeSHAP Row Grid */
+.shap-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 140px;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Mobile & Tablet Drawer, Safe-Areas and Touch Optimization (iOS / Android) */
+@media (hover: none) and (pointer: coarse) {
+  #custom-cursor-dot,
+  #custom-cursor-ring {
+    display: none !important;
+  }
+}
+
+.mobile-menu-btn {
+  display: none;
+}
+
+.mobile-close-btn {
+  display: none;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .layout-root {
+    flex-direction: column;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    box-shadow: var(--shadow-tactile-sm);
+    cursor: pointer;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .mobile-close-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #1A1A1A;
+    color: #FFFFFF;
+    border: 1px solid #333333;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .layout-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 290px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .layout-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .sidebar-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .layout-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .topbar {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .app-shell {
+    padding: 18px 12px 60px;
+  }
+
+  .panel {
+    padding: 20px 14px;
+    margin-bottom: 36px;
+  }
+
+  .panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+  }
+
+  .panel-title {
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .shap-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .btn {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wordmark {
+    font-size: 16px;
+    gap: 6px;
+  }
+
+  .tag-pill {
+    display: none;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .topbar-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .topbar-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+

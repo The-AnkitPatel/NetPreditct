@@ -27,6 +27,7 @@ export const App: React.FC = () => {
   const [incidents, setIncidents] = useState<HistoricalIncident[]>([]);
   const [activeSection, setActiveSection] = useState<SectionId>('telemetry');
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const timerRef = useRef<number | null>(null);
 
@@ -164,6 +165,8 @@ export const App: React.FC = () => {
         activeSection={activeSection}
         onSelectSection={setActiveSection}
         isAnomaly={prediction?.is_current_anomaly || false}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       <div className="layout-main">
@@ -174,6 +177,7 @@ export const App: React.FC = () => {
           onJumpIncident={handleJumpIncident}
           onReset={handleResetStream}
           onPollLiveNic={handlePollLiveNic}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           currentTimestamp={currentTelemetry?.timestamp ? new Date(currentTelemetry.timestamp).toUTCString() : ''}
           isAnomaly={prediction?.is_current_anomaly || false}
         />

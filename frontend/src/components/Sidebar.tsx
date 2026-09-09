@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Server,
   Zap,
+  X,
 } from 'lucide-react';
 import { CheckIcon } from './CheckIcon';
 
@@ -21,6 +22,8 @@ interface SidebarProps {
   isAnomaly: boolean;
   currentStep?: number;
   totalSteps?: number;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 interface NavItem {
@@ -44,66 +47,81 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSection,
   onSelectSection,
   isAnomaly,
+  isOpen = false,
+  onClose,
 }) => {
   const handleNavClick = (id: SectionId) => {
     onSelectSection(id);
+    if (onClose) onClose();
     const element = document.getElementById(id);
     if (element) {
-      const topOffset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - topOffset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
+      const offsetPos = element.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo({ top: offsetPos, behavior: 'smooth' });
     }
   };
 
   return (
-    <aside className="layout-sidebar">
-      {/* 1. Header & Brand Wordmark */}
-      <div>
-        <div style={{ padding: '24px 20px 18px', borderBottom: '1px solid #1A1A1A' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '0px',
-                background: 'var(--chili)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(214, 64, 42, 0.45)',
-              }}
-            >
-              <Zap size={18} color="#FFFDF8" />
-            </div>
-            <div>
+    <>
+      <div
+        className={`sidebar-backdrop ${isOpen ? 'open' : ''}`}
+        onClick={onClose}
+        aria-label="Close navigation drawer"
+      />
+      <aside className={`layout-sidebar ${isOpen ? 'open' : ''}`}>
+        {/* 1. Header & Brand Wordmark */}
+        <div>
+          <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid #1A1A1A', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div
                 style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '19px',
-                  fontWeight: 900,
-                  letterSpacing: '0.5px',
-                  color: '#FFFFFF',
-                  lineHeight: '1.1',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '0px',
+                  background: 'var(--chili)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(214, 64, 42, 0.45)',
                 }}
               >
-                NETPREDICT
+                <Zap size={18} color="#FFFDF8" />
               </div>
-              <div
-                style={{
-                  fontSize: '9.5px',
-                  fontFamily: 'var(--font-mono)',
-                  letterSpacing: '1.2px',
-                  color: '#777777',
-                  textTransform: 'uppercase',
-                }}
-              >
-                ML Telemetry NOC v1.0
+              <div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '19px',
+                    fontWeight: 900,
+                    letterSpacing: '0.5px',
+                    color: '#FFFFFF',
+                    lineHeight: '1.1',
+                  }}
+                >
+                  NETPREDICT
+                </div>
+                <div
+                  style={{
+                    fontSize: '9.5px',
+                    fontFamily: 'var(--font-mono)',
+                    letterSpacing: '1.2px',
+                    color: '#777777',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  ML Telemetry NOC v1.0
+                </div>
               </div>
             </div>
+            {onClose && (
+              <button
+                className="mobile-close-btn"
+                onClick={onClose}
+                aria-label="Close Navigation"
+                style={{ borderRadius: '2px' }}
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
 
           {/* Device Target Badge (AMOLED Black) */}
@@ -254,7 +272,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
         </div>
-      </div>
 
       {/* 3. System Telemetry & ML Engine Specs Footer (AMOLED Black) */}
       <div
@@ -267,18 +284,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span>ML ENGINE:</span>
-          <span className="font-mono" style={{ color: '#D0D0D0' }}>LightGBM + TreeSHAP</span>
+          <span>ML ENGINE:</span><span className="font-mono" style={{ color: '#D0D0D0' }}>LightGBM + TreeSHAP</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span>CALIBRATION:</span>
-          <span className="font-mono" style={{ color: '#D0D0D0' }}>Isotonic (Brier: 0.0157)</span>
+          <span>CALIBRATION:</span><span className="font-mono" style={{ color: '#D0D0D0' }}>Isotonic (Brier: 0.0157)</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>CONFORMAL INTERVAL:</span>
-          <span className="font-mono" style={{ color: '#D0D0D0' }}>90% Coverage</span>
+          <span>CONFORMAL INTERVAL:</span><span className="font-mono" style={{ color: '#D0D0D0' }}>90% Coverage</span>
         </div>
       </div>
     </aside>
-  );
+  </>
+);
 };

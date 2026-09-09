@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, FastForward, RotateCcw, AlertTriangle, Activity, Radio } from 'lucide-react';
+import { Play, Pause, FastForward, RotateCcw, AlertTriangle, Activity, Radio, Menu } from 'lucide-react';
 import { CheckIcon } from './CheckIcon';
 import { isBackendOnline } from '../services/api';
 
@@ -10,6 +10,7 @@ interface TopbarProps {
   onJumpIncident: () => void;
   onReset: () => void;
   onPollLiveNic?: () => void;
+  onToggleSidebar?: () => void;
   currentTimestamp: string;
   isAnomaly: boolean;
 }
@@ -21,33 +22,45 @@ export const Topbar: React.FC<TopbarProps> = ({
   onJumpIncident,
   onReset,
   onPollLiveNic,
+  onToggleSidebar,
   currentTimestamp,
   isAnomaly,
 }) => {
   return (
     <header className="topbar">
-      <div className="wordmark" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Activity size={26} color="var(--chili)" />
-        <span>NETPREDICT</span>
-        <span className="tag-pill">ML INTEL v1.0</span>
-        <span
-          className="font-mono"
-          style={{
-            fontSize: '9px',
-            padding: '2px 6px',
-            background: isBackendOnline() ? '#E8EFE3' : 'var(--card)',
-            color: isBackendOnline() ? 'var(--lentil-dark)' : 'var(--grey)',
-            border: '1px solid var(--line)',
-            fontWeight: 800,
-            letterSpacing: '0.4px',
-          }}
-          title={isBackendOnline() ? 'Connected to live FastAPI server' : 'Running on zero-cost browser-native engine'}
-        >
-          {isBackendOnline() ? '● CLOUD FASTAPI' : '● SERVERLESS ENGINE'}
-        </span>
+      <div className="topbar-header-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {onToggleSidebar && (
+          <button
+            className="mobile-menu-btn"
+            onClick={onToggleSidebar}
+            aria-label="Open Navigation Drawer"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+        <div className="wordmark" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Activity size={26} color="var(--chili)" />
+          <span>NETPREDICT</span>
+          <span className="tag-pill">ML INTEL v1.0</span>
+          <span
+            className="font-mono"
+            style={{
+              fontSize: '9px',
+              padding: '2px 6px',
+              background: isBackendOnline() ? '#E8EFE3' : 'var(--card)',
+              color: isBackendOnline() ? 'var(--lentil-dark)' : 'var(--grey)',
+              border: '1px solid var(--line)',
+              fontWeight: 800,
+              letterSpacing: '0.4px',
+            }}
+            title={isBackendOnline() ? 'Connected to live FastAPI server' : 'Running on zero-cost browser-native engine'}
+          >
+            {isBackendOnline() ? '● CLOUD FASTAPI' : '● SERVERLESS ENGINE'}
+          </span>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
           <span style={{ color: 'var(--grey)', fontWeight: 600 }}>TELEMETRY TIME:</span>
           <span className="font-mono" style={{ fontWeight: 700 }}>
@@ -66,7 +79,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           </span>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             className={`btn ${isPlaying ? 'btn-primary' : ''}`}
             onClick={onTogglePlay}
