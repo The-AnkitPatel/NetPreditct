@@ -1,0 +1,109 @@
+import React from 'react';
+import { Play, Pause, FastForward, RotateCcw, AlertTriangle, Activity, Radio } from 'lucide-react';
+import { CheckIcon } from './CheckIcon';
+
+interface TopbarProps {
+  isPlaying: boolean;
+  onTogglePlay: () => void;
+  onStep: () => void;
+  onJumpIncident: () => void;
+  onReset: () => void;
+  onPollLiveNic?: () => void;
+  currentTimestamp: string;
+  isAnomaly: boolean;
+}
+
+export const Topbar: React.FC<TopbarProps> = ({
+  isPlaying,
+  onTogglePlay,
+  onStep,
+  onJumpIncident,
+  onReset,
+  onPollLiveNic,
+  currentTimestamp,
+  isAnomaly,
+}) => {
+  return (
+    <header className="topbar">
+      <div className="wordmark">
+        <Activity size={26} color="var(--chili)" />
+        <span>NETPREDICT</span>
+        <span className="tag-pill">ML INTEL v1.0</span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+          <span style={{ color: 'var(--grey)', fontWeight: 600 }}>TELEMETRY TIME:</span>
+          <span className="font-mono" style={{ fontWeight: 700 }}>
+            {currentTimestamp || '2026-09-01 08:30 UTC'}
+          </span>
+        </div>
+
+        {isAnomaly ? (
+          <span className="badge-critical" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <AlertTriangle size={13} /> ANOMALY DETECTED NOW
+          </span>
+        ) : (
+          <span className="badge-low" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <CheckIcon size={12} style={{ color: 'var(--lentil)' }} />
+            CURRENT STATE NOMINAL
+          </span>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            className={`btn ${isPlaying ? 'btn-primary' : ''}`}
+            onClick={onTogglePlay}
+            title={isPlaying ? 'Pause auto-play' : 'Resume auto-play'}
+            style={{ padding: '7px 12px' }}
+          >
+            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+            {isPlaying ? 'PAUSE' : 'PLAY'}
+          </button>
+
+          <button
+            className="btn"
+            onClick={onStep}
+            disabled={isPlaying}
+            title="Step telemetry forward 1 minute"
+            style={{ padding: '7px 12px' }}
+          >
+            <FastForward size={14} />
+            STEP +1M
+          </button>
+
+          <button
+            className="btn"
+            onClick={onJumpIncident}
+            title="Jump playhead to acute congestion event"
+            style={{ padding: '7px 12px', background: 'var(--danger-bg)', borderColor: 'var(--chili)' }}
+          >
+            <AlertTriangle size={14} color="var(--chili)" />
+            SIMULATE INCIDENT
+          </button>
+
+          {onPollLiveNic && (
+            <button
+              className="btn btn-success"
+              onClick={onPollLiveNic}
+              title="Poll genuine physical host network adapter counters (psutil)"
+              style={{ padding: '7px 12px' }}
+            >
+              <Radio size={13} />
+              POLL HOST NIC
+            </button>
+          )}
+
+          <button
+            className="btn"
+            onClick={onReset}
+            title="Reset telemetry timeline"
+            style={{ padding: '7px 10px' }}
+          >
+            <RotateCcw size={14} />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
