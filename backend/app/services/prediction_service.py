@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import pandas as pd
 from backend.app.core.config import settings
 from backend.app.domain.telemetry_schemas import RawTelemetryRecord, TelemetrySnapshot
@@ -154,6 +154,42 @@ class PredictionService:
         # Cache for SHAP inspection
         self.cached_predictions[prediction_id] = (response, features)
         return response
+
+    def recalibrate_in_memory(self) -> Dict[str, Any]:
+        """Dynamically recalibrates Isotonic models and conformal prediction quantiles without downtime."""
+        from backend.app.services.dataset_loader import ensure_dataset_exists
+        from backend.app.services.feature_extractor import extract_features_from_dataframe
+
+        if not self.predictor.is_trained:
+            self.predictor.load()
+
+        df = ensure_dataset_exists()
+        feat_df = extract_features_from_dataframe(df)
+        n = len(df)
+        calib_idx = int(n * 0.70)
+        X_calib = feat_df.iloc[calib_idx:]
+
+        # Recalibrate isotonic regressors for each horizon
+        for h in [5, 15, 30]:
+            target_col = f"target_t{h}"
+            if target_col in df:
+                raw_probs = self.predictor.classifiers[h].predict_proba(X_calib)[:, 1]
+                self.predictor.calibrators[h].fit(raw_probs, df[target_col].iloc[calib_idx:].values)
+
+        # Recalibrate conformal intervals
+        preds_rtt = self.predictor.rtt_regressor.predict(X_calib)
+        preds_loss = self.predictor.loss_regressor.predict(X_calib)
+        y_true_rtt = df["rtt_ms"].iloc[calib_idx:].values
+        y_true_loss = df["packet_loss_pct"].iloc[calib_idx:].values
+        self.conformal.calibrate(y_true_rtt, preds_rtt, y_true_loss, preds_loss)
+
+        return {
+            "status": "RECALIBRATED",
+            "samples_used": len(X_calib),
+            "conformal_rtt_quantile": round(self.conformal.q_rtt, 2),
+            "is_calibrated": True,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
 
 
 # Global singleton service

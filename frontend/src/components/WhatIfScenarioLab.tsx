@@ -10,9 +10,11 @@ export const WhatIfScenarioLab: React.FC = () => {
   const [priorityQueue, setPriorityQueue] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [simResult, setSimResult] = useState<SimulationResponse | null>(null);
+  const [prescribeRationale, setPrescribeRationale] = useState<string | null>(null);
 
   const handleRunSimulation = async () => {
     setIsLoading(true);
+    setPrescribeRationale(null);
     try {
       const res = await api.simulateScenario({
         device_id: 'core-router-alpha',
@@ -26,6 +28,25 @@ export const WhatIfScenarioLab: React.FC = () => {
       setSimResult(res);
     } catch (err) {
       console.error('Simulation error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAutoPrescribe = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.prescribeOptimalScenario();
+      if (res.recommended_scenario) {
+        setReroutePct(res.recommended_scenario.reroute_traffic_pct);
+        setRateLimitPct(res.recommended_scenario.ingress_rate_limit_pct);
+        setBufferFactor(res.recommended_scenario.buffer_expansion_factor);
+        setPriorityQueue(res.recommended_scenario.enable_priority_queuing);
+      }
+      setSimResult(res.simulation);
+      setPrescribeRationale(res.rationale);
+    } catch (err) {
+      console.error('Prescription error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -117,10 +138,27 @@ export const WhatIfScenarioLab: React.FC = () => {
             {isLoading ? <RefreshCw size={15} className="animate-spin" /> : <PlayCircle size={15} />}
             EVALUATE COUNTERFACTUAL MITIGATION
           </button>
+
+          <button
+            className="btn btn-success"
+            onClick={handleAutoPrescribe}
+            disabled={isLoading}
+            style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}
+          >
+            <Zap size={14} />
+            AUTO-PRESCRIBE OPTIMAL MITIGATION
+          </button>
         </div>
 
         {/* Results Column */}
         <div style={{ background: '#FFFDF8', border: '1px solid var(--line)', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+          {prescribeRationale && (
+            <div style={{ background: '#E8EFE3', border: '1px solid var(--lentil)', padding: '10px 12px', marginBottom: '14px', fontSize: '11.5px', color: 'var(--lentil-dark)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Zap size={14} color="var(--lentil-dark)" className="shrink-0" />
+              <span>{prescribeRationale}</span>
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Shield size={14} color="var(--lentil)" /> COUNTERFACTUAL OUTCOME PREVIEW

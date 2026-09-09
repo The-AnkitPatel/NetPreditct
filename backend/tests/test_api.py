@@ -61,3 +61,22 @@ def test_api_live_poll(client):
     assert "prediction" in data
     assert data["record"]["throughput_mbps"] >= 0
 
+
+def test_api_prescribe(client):
+    response = client.post("/api/v1/simulate/prescribe?device_id=core-router-alpha&interface_id=xe-0/0/1&horizon_minutes=15")
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert "recommended_scenario" in data
+    assert "simulation" in data
+    assert "rationale" in data
+
+
+def test_api_recalibrate(client):
+    response = client.post("/api/v1/health/recalibrate")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "RECALIBRATED"
+    assert data["is_calibrated"] is True
+
+

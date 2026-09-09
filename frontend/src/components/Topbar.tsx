@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, Pause, FastForward, RotateCcw, AlertTriangle, Activity, Radio } from 'lucide-react';
 import { CheckIcon } from './CheckIcon';
+import { isBackendOnline } from '../services/api';
 
 interface TopbarProps {
   isPlaying: boolean;
@@ -25,10 +26,25 @@ export const Topbar: React.FC<TopbarProps> = ({
 }) => {
   return (
     <header className="topbar">
-      <div className="wordmark">
+      <div className="wordmark" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Activity size={26} color="var(--chili)" />
         <span>NETPREDICT</span>
         <span className="tag-pill">ML INTEL v1.0</span>
+        <span
+          className="font-mono"
+          style={{
+            fontSize: '9px',
+            padding: '2px 6px',
+            background: isBackendOnline() ? '#E8EFE3' : 'var(--card)',
+            color: isBackendOnline() ? 'var(--lentil-dark)' : 'var(--grey)',
+            border: '1px solid var(--line)',
+            fontWeight: 800,
+            letterSpacing: '0.4px',
+          }}
+          title={isBackendOnline() ? 'Connected to live FastAPI server' : 'Running on zero-cost browser-native engine'}
+        >
+          {isBackendOnline() ? '● CLOUD FASTAPI' : '● SERVERLESS ENGINE'}
+        </span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>

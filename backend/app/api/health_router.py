@@ -111,3 +111,13 @@ def get_model_health_and_drift():
             "naive_persistence": metrics_pers,
         },
     }
+
+
+@router.post("/recalibrate", response_model=Dict[str, Any])
+def trigger_in_memory_recalibration():
+    """
+    Automated Retraining/Recalibration: Re-fits Isotonic calibration curves and conformal
+    prediction quantiles on recent telemetry without interrupting service.
+    """
+    return prediction_service.recalibrate_in_memory()
+
