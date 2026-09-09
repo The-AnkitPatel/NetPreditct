@@ -7,8 +7,15 @@
 [![TreeSHAP](https://img.shields.io/badge/Explainability-TreeSHAP-orange)](https://github.com/shap/shap)
 [![React 19](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Vercel UI](https://img.shields.io/badge/Vercel_Cockpit-Live_Online-000000?logo=vercel&logoColor=white)](https://netpredict-cockpit.vercel.app)
+[![Vercel Docs](https://img.shields.io/badge/Fumadocs-Portal_Live-black?logo=vercel&logoColor=white)](https://netpredict-docs.vercel.app/docs)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![Tests](https://img.shields.io/badge/Pytest-100%25_Passing-success)](#verification--automated-tests)
+
+> **🚀 LIVE DEPLOYMENTS (100% Free Serverless Edge — 0ms Latency):**
+> - **Live Interactive Cockpit**: [**https://netpredict-cockpit.vercel.app**](https://netpredict-cockpit.vercel.app)
+> - **Architectural Documentation Portal (Fumadocs)**: [**https://netpredict-docs.vercel.app/docs**](https://netpredict-docs.vercel.app/docs)
+
 
 ---
 
