@@ -38,13 +38,14 @@ def add_code(source):
 
 # Title and Overview
 add_md("""# NetPredict: Network Congestion & Telemetry ML Pipeline
-This notebook implements the foundational data preprocessing, data cleaning, and feature engineering steps for the NetPredict network congestion prediction system.
+This notebook implements the foundational data preprocessing, data cleaning, feature engineering, and exploratory data visualization steps for the NetPredict network congestion prediction system.
 
 ### Pipeline Outline:
 1. **Cell 1: Environment Setup & Library Imports**
 2. **Cell 2: Ingesting Raw Uncleaned Network Telemetry Trace**
 3. **Cell 3: Complete Data Cleaning & Preprocessing (With Before vs After Audit)**
-4. **Cell 4: Physics-Grounded Temporal Feature Engineering (Zero Data Leakage)""")
+4. **Cell 4: Physics-Grounded Temporal Feature Engineering (Zero Data Leakage)**
+5. **Cell 5: Exploratory Data Analysis & Visualizations (Cleaning Proof, Bufferbloat Dynamics, Correlation Heatmap)**""")
 
 # CELL 1
 add_md("""---
@@ -64,15 +65,22 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.model_selection import TimeSeriesSplit
 
-# Configure display options and suppress minor warnings
+# Configure display options and plot styling
 warnings.filterwarnings('ignore')
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 pd.set_option('display.float_format', lambda x: f'{x:.3f}')
 
+# Set clean visualization theme
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.size'] = 10
+plt.rcParams['figure.titlesize'] = 12
+
 print("Libraries successfully imported!")
-print(f"- Pandas Version: {pd.__version__}")
-print(f"- NumPy Version:  {np.__version__}")""")
+print(f"- Pandas Version:     {pd.__version__}")
+print(f"- NumPy Version:      {np.__version__}")
+print(f"- Matplotlib Version: {plt.matplotlib.__version__}")
+print(f"- Seaborn Version:    {sns.__version__}")""")
 
 # CELL 2
 add_md("""---
@@ -113,7 +121,7 @@ df_raw = pd.read_csv(dataset_source)
 
 print(f"Raw dataset successfully loaded from: {dataset_source}")
 print(f"- Raw Telemetry Records (Rows):     {df_raw.shape[0]:,}")
-print(f"- Raw Telemetry Signals (Cols): {df_raw.shape[1]}")
+print(f"- Raw Telemetry Signals (Cols):     {df_raw.shape[1]}")
 
 # Display first 5 records of raw data
 display(df_raw.head())""")
@@ -280,9 +288,112 @@ sample_cols = [
 ]
 display(df_features[sample_cols].head())""")
 
+# CELL 5
+add_md("""---
+## Cell 5: Exploratory Data Analysis & Visualizations
+We generate three high-impact visual analyses:
+1. **Plot 1: Data Cleaning Verification (Raw vs Cleaned)**: Visually proves how sensor dropouts and corrupted `-999ms` spikes were repaired.
+2. **Plot 2: Bufferbloat & Latency Escalation Kinetics**: Demonstrates that queue occupancy drives latency climbing *before* packets drop.
+3. **Plot 3: Feature Correlation Heatmap**: Demonstrates the strong correlation between our engineered delay gradients and future failure target (`target_t15`).""")
+
+add_code("""# Cell 5: Exploratory data analysis and visualizations
+
+# ------------------------------------------------------------------------------
+# PLOT 1: Visual Proof of Data Cleaning (Raw vs Cleaned Telemetry)
+# ------------------------------------------------------------------------------
+# We zoom into a representative 180-minute slice containing sensor glitches
+slice_start, slice_end = 450, 630
+
+plt.figure(figsize=(14, 5))
+
+# Plot raw signal with corrupted negative spikes (-999ms)
+raw_slice = df_raw.iloc[slice_start:slice_end].copy()
+raw_slice['timestamp'] = pd.to_datetime(raw_slice['timestamp'])
+plt.plot(raw_slice['timestamp'], raw_slice['rtt_ms'], color='#D6402A', linestyle='--', alpha=0.6, label='Raw Telemetry (Corrupted -999ms Spikes & Gaps)')
+
+# Plot cleaned and interpolated signal
+clean_slice = df_clean.iloc[slice_start:slice_end].copy()
+plt.plot(clean_slice['timestamp'], clean_slice['rtt_ms'], color='#2B6CB0', linewidth=2, label='Cleaned & Imputed Telemetry (Valid Physical Bounds)')
+
+plt.title("Visual Verification of Data Cleaning: Raw Sensor Outliers vs. Cleaned Signal", fontsize=13, fontweight='bold')
+plt.xlabel("Timeline (UTC)", fontsize=11)
+plt.ylabel("Round-Trip Time RTT (ms)", fontsize=11)
+plt.ylim(0, 160)
+plt.legend(loc='upper right', frameon=True)
+plt.tight_layout()
+plt.show()
+
+# ------------------------------------------------------------------------------
+# PLOT 2: The Physical Kinetics of Bufferbloat (Queue vs Latency vs Drops)
+# ------------------------------------------------------------------------------
+# Incident window showing traffic surge, queue buildup, and packet drop cliff
+fig, ax1 = plt.subplots(figsize=(14, 6))
+
+incident_slice = df_features.iloc[470:535].copy()
+
+# Axis 1: Queue Occupancy and Bandwidth Utilization
+color_q = '#D97706' # Amber
+color_bw = '#4A5568' # Slate
+ax1.set_xlabel("Timeline (UTC)", fontsize=11)
+ax1.set_ylabel("Utilization / Occupancy (%)", color=color_q, fontsize=11)
+line1 = ax1.plot(incident_slice['timestamp'], incident_slice['queue_occupancy_pct'], color=color_q, linewidth=2.5, label='Queue Occupancy % (Bufferbloat)')
+line2 = ax1.plot(incident_slice['timestamp'], incident_slice['bandwidth_util_pct'], color=color_bw, linestyle=':', linewidth=1.8, label='Bandwidth Utilization %')
+ax1.tick_params(axis='y', labelcolor=color_q)
+ax1.set_ylim(0, 110)
+
+# Axis 2: RTT Latency Escalation
+ax2 = ax1.twinx()
+color_rtt = '#C53030' # Red
+ax2.set_ylabel("Round-Trip Time Latency (ms)", color=color_rtt, fontsize=11)
+line3 = ax2.plot(incident_slice['timestamp'], incident_slice['rtt_ms'], color=color_rtt, linewidth=2.5, label='RTT Latency (ms)')
+ax2.tick_params(axis='y', labelcolor=color_rtt)
+ax2.set_ylim(0, 140)
+
+# Highlight packet drop region
+loss_mask = incident_slice['packet_loss_pct'] > 0.5
+if loss_mask.any():
+    ax1.fill_between(incident_slice['timestamp'], 0, 100, where=loss_mask, color='#FEB2B2', alpha=0.35, label='Severe Packet Drop Region')
+
+# Combine legends
+lines = line1 + line2 + line3
+labels = [l.get_label() for l in lines]
+ax1.legend(lines, labels, loc='upper left', frameon=True)
+
+plt.title("Bufferbloat Incident Dynamics: Queue Buildup Causes Latency Spike Before Packet Loss", fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.show()
+
+# ------------------------------------------------------------------------------
+# PLOT 3: Feature Correlation Heatmap with Future Failure Target
+# ------------------------------------------------------------------------------
+heatmap_cols = [
+    'bandwidth_util_pct', 'throughput_mbps', 'queue_occupancy_pct', 
+    'rtt_ms', 'rtt_slope_5m', 'queue_slope_5m', 
+    'buffer_stress_index', 'congestion_pressure_score', 
+    'target_t15'
+]
+
+corr_matrix = df_features[heatmap_cols].corr()
+
+plt.figure(figsize=(10, 7))
+sns.heatmap(
+    corr_matrix, 
+    annot=True, 
+    cmap='coolwarm', 
+    fmt='.2f', 
+    linewidths=0.5, 
+    cbar_kws={'label': 'Pearson Correlation Coefficient'}
+)
+plt.title("Correlation Matrix: Engineered Features vs. Future Failure Target (target_t15)", fontsize=13, fontweight='bold')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.show()
+
+print("✓ All 3 visualizations successfully generated!")""")
+
 # Save notebook
 target_notebook = os.path.join("notebooks", "NetPredict_ML_Pipeline.ipynb")
 with open(target_notebook, "w", encoding="utf-8") as f:
     json.dump(nb, f, indent=2)
 
-print(f"Notebook updated successfully at: {target_notebook}")
+print(f"Notebook updated with visualizations successfully at: {target_notebook}")
