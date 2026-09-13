@@ -85,19 +85,38 @@ We load the multi-variate telemetry dataset (`telemetry_trace.csv`).
 The dataset captures 7 continuous days of 1-minute sampled router telemetry (10,080 rows), recording metrics such as bandwidth utilization, queue occupancy (bufferbloat), round-trip time (RTT), packet loss, and CPU load.""")
 
 add_code("""# ==============================================================================
-# CELL 2: Loading the Telemetry Dataset
+# CELL 2: Loading the Telemetry Dataset (Works Everywhere: Colab, Kaggle, Local)
 # ==============================================================================
-# Locate dataset (checking both relative paths for flexibility)
-dataset_path = os.path.join("..", "backend", "data", "telemetry_trace.csv")
-if not os.path.exists(dataset_path):
-    dataset_path = os.path.join("backend", "data", "telemetry_trace.csv")
+# Public raw GitHub URL for the dataset (works instantly in Google Colab & Kaggle)
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/The-AnkitPatel/NetPreditct/main/backend/data/telemetry_trace.csv"
+
+# Potential local paths if running on your machine
+local_paths = [
+    os.path.join("..", "backend", "data", "telemetry_trace.csv"),
+    os.path.join("backend", "data", "telemetry_trace.csv"),
+    "telemetry_trace.csv"
+]
+
+# Check for local file; if not found (e.g. in Google Colab), stream from public GitHub
+dataset_source = None
+for p in local_paths:
+    if os.path.exists(p):
+        dataset_source = p
+        break
+
+if dataset_source is None:
+    dataset_source = GITHUB_RAW_URL
+    print("Loading dataset directly from public GitHub repository (Google Colab Mode)...")
+else:
+    print(f"Loading dataset from local filesystem: {dataset_source}")
 
 # Load CSV into a pandas DataFrame
-df_raw = pd.read_csv(dataset_path)
+df_raw = pd.read_csv(dataset_source)
 
 print("=" * 60)
-print(f"✓ Dataset loaded from: {dataset_path}")
-print(f"  • Total Telemetry Records (Rows):    {df_raw.shape[0]:,}")
+print("✓ Dataset successfully loaded!")
+print(f"  • Data Source:                        {dataset_source}")
+print(f"  • Total Telemetry Records (Rows):     {df_raw.shape[0]:,}")
 print(f"  • Total Raw Telemetry Signals (Cols): {df_raw.shape[1]}")
 print("=" * 60)
 
